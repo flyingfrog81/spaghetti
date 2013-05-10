@@ -35,6 +35,8 @@ import zmq
 import dataroom
 import handlers
 
+VERSION = "simple"
+
 class SpaghettiApplication(tornado.web.Application):
     def __init__(self, **kwargs):
         self.hotel = dataroom.DataHotel()
