@@ -1,0 +1,23 @@
+<html>
+<head>
+  <title>{% block title %}Spaghetti data{% end %}</title>
+</head>
+<body>
+
+{% block content %}
+<div id="content">
+</div>
+{% end %}
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+
+{% block javascript %}
+<script>
+$(document).ready(function(){
+  $("#content").append($("<h3>default content</h3>");
+});
+</script>
+{% end %}
+
+</body>
+</html>
