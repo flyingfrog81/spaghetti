@@ -25,6 +25,7 @@
 #
 import datetime
 import logging
+logger = logging.getLogger(__name__)
 
 """
 Room attributes 
@@ -39,7 +40,7 @@ def dataroom_error(message):
     """
     Log the message and raise a DataRoomException with the same message
     """
-    logging.exception(message)
+    logger.exception(message)
     raise DataRoomException(message)
 
 class DataRoom(object):
@@ -72,7 +73,7 @@ class DataRoom(object):
         """
         Disconnects all the clients and closes the room
         """
-        logging.debug("closing room: " + self.name)
+        logger.debug("closing room: " + self.name)
         for client in self.clients:
             client.close()
         self.configuration['open'] = False
@@ -84,9 +85,9 @@ class DataRoom(object):
         it to all successive data updates.
         """
         if not self.configuration['open']:
-            logging.debug("trying to access a closed DataRoom: " + self.name) 
+            logger.debug("trying to access a closed DataRoom: " + self.name) 
             return
-        logging.debug("add a client to the room: " + self.name)
+        logger.debug("add a client to the room: " + self.name)
         self.clients.add(client)
         self.configuration['last_connection'] = datetime.datetime.now()
         self.configuration['empty_since'] = None
@@ -99,7 +100,7 @@ class DataRoom(object):
         Remove the client from the DataRoom. 
         If no more clients are present sets the DataRoom empty status.
         """
-        logging.debug("remove client from room: " + self.name)
+        logger.debug("remove client from room: " + self.name)
         self.clients.remove(client)
         if not self.clients:
             self.configuration['empty_since'] = datetime.datetime.now()
@@ -145,10 +146,10 @@ class DataHotel(object):
         """
         if self.rooms.has_key(name):
             dataroom_error("room already exists: " + name)
-            #logging.debug("room already exists: " + name)
+            #logger.debug("room already exists: " + name)
             #raise DataRoomException("room already exists: " + name)
         self.rooms[name] = DataRoom(name, owner, data, True)
-        logging.debug("added room: " + name)
+        logger.debug("added room: " + name)
 
     def room_names(self):
         return self.rooms.keys()
@@ -174,7 +175,7 @@ class DataHotel(object):
                 dataroom_error("Unauthorized user for room: " + name)
             self.rooms[name].close()
             self.rooms.pop(name)
-            logging.debug("removed room: " + name)
+            logger.debug("removed room: " + name)
         except KeyError:
             dataroom_error("remove room does not exist: " + name)
 
@@ -187,7 +188,7 @@ class DataHotel(object):
         """
         _uuid = message[0] #now it is not used but it's in the message body
         name = message[1]
-        #logging.debug("update message: " + str(message))
+        #logger.debug("update message: " + str(message))
         try:
             room = self.rooms[name]
             room.update_data(message[-1])

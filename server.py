@@ -23,9 +23,11 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
+
 # Standard library imports
 import os
 import logging
+logger = logging.getLogger(__name__)
 
 # Third party imports
 import tornado.web
@@ -41,15 +43,12 @@ class SpaghettiApplication(tornado.web.Application):
     def __init__(self, **kwargs):
         self.hotel = dataroom.DataHotel()
         _handlers = [
-                (r"/create/(\w+)/?", handlers.CreateRoomHandler),
                 (r"/close/(\w+)/?", handlers.CloseRoomHandler),
-                (r"/login/?", handlers.LoginHandler),
+                (r"/info/(\w+)/?(json)?/?", handlers.InfoHandler),
                 (r"/ws/(\w+)/?", handlers.DataStreamHandler),
-                (r"/(\w+)/?(json)?/?", handlers.InfoHandler),
                 ]
         settings = dict(
                 debug = True,
-                login_url = "/login",
                 template_path = os.path.join(os.path.dirname(__file__), "templates"),
                 static_path = os.path.join(os.path.dirname(__file__), "static"),
                 cookie_secret = "cca0679f-618f-4b81-824e-0920ea0051c8",
@@ -58,7 +57,7 @@ class SpaghettiApplication(tornado.web.Application):
         tornado.web.Application.__init__(self, _handlers, **settings)
 
     def update(self, data):
-        logging.debug("application update via zmq data")
+        logger.debug("application update via zmq data")
         try:
             self.hotel.update_room(data)
         except:
@@ -84,7 +83,7 @@ if __name__ == '__main__':
     zstream = zmqstream.ZMQStream(socket)
     zstream.on_recv(app.update)
     # EVENT LOOP
-    logging.info("starting io loop")
-    logging.info("http port: " + str(options.http_port))
-    logging.info("zmq port: " + str(options.zmq_port))
+    logger.info("starting io loop")
+    logger.info("http port: " + str(options.http_port))
+    logger.info("zmq port: " + str(options.zmq_port))
     ioloop.IOLoop.instance().start()

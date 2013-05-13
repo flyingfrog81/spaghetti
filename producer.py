@@ -29,17 +29,18 @@ import numpy.random
 import scipy.signal
 import zmqnumpy
 import logging
+logger = logging.getLogger(__name__)
 import time
 
-@zmqnumpy.numpy_array_sender("randomproducer", "tcp://127.0.0.1:8766")
+@zmqnumpy.numpy_array_sender("random", "tcp://127.0.0.1:8766")
 def r_data(_max, _size, _type):
     return numpy.random.uniform(0, _max, _size).astype(_type)
 
-@zmqnumpy.numpy_array_sender("gaussproducer", "tcp://127.0.0.1:8766")
+@zmqnumpy.numpy_array_sender("gauss", "tcp://127.0.0.1:8766")
 def g_data(_mean, _stdev, _size, _type):
     return numpy.random.normal(_mean, _stdev, _size).astype(_type)
 
-@zmqnumpy.numpy_array_sender("windowproducer", "tcp://127.0.0.1:8766")
+@zmqnumpy.numpy_array_sender("window", "tcp://127.0.0.1:8766")
 def w_data(_stdev, _size, _type):
     return scipy.signal.gaussian(_size, _stdev).astype(_type)
 
@@ -50,10 +51,9 @@ if __name__ == "__main__":
         while 1:
             r_data(150, _size, numpy.float32)
             g_data(100, 10, _size, numpy.float32)
-            w_data(numpy.random.randint(1,_size), _size, numpy.float32)
+            w_data(numpy.random.randint(1, _size), _size, numpy.float32)
             time.sleep(2.0)
     except Exception, e:
-        logging.error(e)
-        logging.info("closing")
-
+        logger.error(e)
+        logger.info("closing")
 
