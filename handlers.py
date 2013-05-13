@@ -25,6 +25,7 @@
 
 # Standard library imports
 import logging
+logger = logging.getLogger(__name__)
 import datetime
 import functools
 
@@ -54,7 +55,7 @@ try:
     tornado.escape.json_encode = functools.partial(json.dumps, cls=DateTimeJSONEncoder)
     tornado.escape.json_encode.__doc__ = original_doc
 except ImportError:
-    logging.warning("cannot find json module, datetime objects won't be serialized")
+    logger.warning("cannot find json module, datetime objects won't be serialized")
     pass
 
 def get_answer_dict(success=True, exc=None):
@@ -64,47 +65,6 @@ def get_answer_dict(success=True, exc=None):
         return dict(success=False, message=exc.message)
     else:
         return dict(success=False)
-
-
-class SecuredHandler(tornado.web.RequestHandler):
-    """
-    Base handler used for accessing private resources which need authentication
-    """
-    def get_current_user(self):
-        try:
-            user = tornado.escape.json_decode(self.get_secure_cookie("user"))
-            logging.debug("user: " + user['name'])
-            return user
-        except:
-            return None
-
-class LoginHandler(SecuredHandler, tornado.auth.GoogleMixin):
-    """
-    Google authentication handler class.
-    """
-    @tornado.web.addslash
-    @tornado.web.asynchronous
-    def get(self):
-        if self.get_argument("openid.mode", None):
-            self.get_authenticated_user(self.async_callback(self._on_auth))
-            return
-        self.authenticate_redirect()
-
-    def _on_auth(self, user):
-        if not user:
-            self.end_error(401)
-        self.set_secure_cookie("user", tornado.escape.json_encode(user))
-        self.redirect("/")
-
-class CreateRoomHandler(SecuredHandler, tornado.auth.GoogleMixin):
-    @tornado.web.addslash
-    @tornado.web.authenticated
-    def get(self, roomname):
-        try:
-            self.application.hotel.add_room(roomname, self.current_user['email'])
-            self.write(get_answer_dict())
-        except DataRoomException, dre:
-            self.write(get_answer_dict(False, dre))
 
 class CloseRoomHandler(SecuredHandler, tornado.auth.GoogleMixin):
     @tornado.web.addslash
@@ -120,22 +80,22 @@ class InfoHandler(tornado.web.RequestHandler):
     @tornado.web.addslash
     def get(self, name=None, format=None):
         if name == "rooms":
-            logging.debug("fetching general info")
+            logger.debug("fetching general info")
             if format == "json":
                 self.write(dict(rooms=self.application.hotel.room_names()))
             else:
                 self.render("generic_client.html", rooms = self.application.hotel.room_names())
         else:
             try:
-                logging.debug("fetching info for room: " + name)
+                logger.debug("fetching info for room: " + name)
                 config = self.application.hotel.get_room_configuration(name)
                 self.write(config)
             except Exception, exc:
                 self.write(get_answer_dict(False, exc))
 
-class DataStreamHandler(tornado.websocket.WebSocketHandler):
+class WSDataHandler(tornado.websocket.WebSocketHandler):
     def open(self, name, width=None):
-        logging.debug("opening websocket to: " + name)
+        logger.debug("opening websocket to: " + name)
         self.name = name
         if width:
             self.width = int(width)
@@ -150,20 +110,20 @@ class DataStreamHandler(tornado.websocket.WebSocketHandler):
             self.close()
 
     def on_close(self):
-        logging.debug("closing websocket to: " + self.name)
+        logger.debug("closing websocket to: " + self.name)
         room = self.application.hotel.get_room(self.name)
         room.remove_client(self)
 
     def on_message(self, msg):
         if len(msg) > 256:
-            logging.warn("Message length is > 256 characters ... flooding?")
+            logger.warn("Message length is > 256 characters ... flooding?")
         else:
             try:
                 _d = tornado.escape.json_decode(msg)
                 if self.current_user['email'] == self.room.owner:
                     self.room.safe_update_config(_d)
             except:
-                logging.warn("Cannot interpret message: ", msg)
+                logger.warn("Cannot interpret message: ", msg)
 
     @property
     def room(self):

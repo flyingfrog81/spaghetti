@@ -45,7 +45,7 @@ class SpaghettiApplication(tornado.web.Application):
         _handlers = [
                 (r"/close/(\w+)/?", handlers.CloseRoomHandler),
                 (r"/info/(\w+)/?(json)?/?", handlers.InfoHandler),
-                (r"/ws/(\w+)/?", handlers.DataStreamHandler),
+                (r"/ws/(\w+)/?", handlers.WSDataHandler),
                 ]
         settings = dict(
                 debug = True,
