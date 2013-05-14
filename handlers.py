@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 import datetime
 import functools
 
-#
 # Third party imports
 import tornado.web
 import tornado.websocket

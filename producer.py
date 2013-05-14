@@ -24,6 +24,11 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 
+"""
+Module used as a standalone application for testing the spaghetti server with
+different data sets produced runtime.
+"""
+
 import numpy
 import numpy.random
 import scipy.signal
