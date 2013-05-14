@@ -36,7 +36,7 @@ import tornado.escape
 import tornado.auth
 
 # Project imports
-from dataroom import DataRoomException
+import datachannel
 
 try:
     #Here we try to patch the json_encode function in order
@@ -65,74 +65,74 @@ def get_answer_dict(success=True, exc=None):
     else:
         return dict(success=False)
 
-class CloseRoomHandler(SecuredHandler, tornado.auth.GoogleMixin):
+class CloseChannelHandler(tornado.web.RequestHandler):
     @tornado.web.addslash
-    @tornado.web.authenticated
-    def get(self, roomname):
+    def get(self, channel_name):
+        logger.debug("CloseChannelHandler.get(%s)" % (channel_name,))
         try:
-            self.application.hotel.remove_room(roomname, self.current_user['email'])
+            self.application.channels.close_channel(channel_name)
             self.write(get_answer_dict())
-        except DataRoomException, dre:
-            self.write(get_answer_dict(False, dre))
+        except datachannel.DataChannelException, dce:
+            self.write(get_answer_dict(False, dce))
+
+class ListHandler(tornado.web.RequestHandler):
+    def initialize(self, view="list.html"):
+        self.view = view
+
+    @tornado.web.addslash
+    def get(self, response_format="html"):
+        logger.debug("ListHandler.get(response_format=%s)" % (response_format,))
+        if response_format == "json":
+            self.write(dict(
+                        channels = [channel.configuration for channel in
+                        self.application.channel_collection],
+                           ) 
+                      )
+        else:
+            self.render(self.view,
+                        channels=self.application.channel_collection)
 
 class InfoHandler(tornado.web.RequestHandler):
+    def initialize(self, view="detail.html"):
+        self.view = view
+
     @tornado.web.addslash
-    def get(self, name=None, format=None):
-        if name == "rooms":
-            logger.debug("fetching general info")
-            if format == "json":
-                self.write(dict(rooms=self.application.hotel.room_names()))
-            else:
-                self.render("generic_client.html", rooms = self.application.hotel.room_names())
+    def get(self, name, response_format="html"):
+        logger.debug("InfoHandler.get(name=%s, response_format=%s)" % (name, response_format,))
+        try:
+            channel = self.application.get_channel(name)
+        except Exception, exc:
+            self.write(get_answer_dict(False, exc))
+        if response_format == "json":
+            self.write(channel.configuration)
         else:
-            try:
-                logger.debug("fetching info for room: " + name)
-                config = self.application.hotel.get_room_configuration(name)
-                self.write(config)
-            except Exception, exc:
-                self.write(get_answer_dict(False, exc))
+            self.render(self.view, channel)
 
 class WSDataHandler(tornado.websocket.WebSocketHandler):
-    def open(self, name, width=None):
+    def open(self, name):
         logger.debug("opening websocket to: " + name)
         self.name = name
-        if width:
-            self.width = int(width)
-        else:
-            self.width = None
         #save the creation time for time-based expiring
-        self.date_of_birth = datetime.datetime.now()
+        self.creation_datetime = datetime.datetime.now()
         try:
-            #add the listener to the named room
-            self.room.add_client(self)
+            #add the listener to the named channel
+            self.channel.add_client(self)
         except KeyError:
             self.close()
 
     def on_close(self):
         logger.debug("closing websocket to: " + self.name)
-        room = self.application.hotel.get_room(self.name)
-        room.remove_client(self)
-
-    def on_message(self, msg):
-        if len(msg) > 256:
-            logger.warn("Message length is > 256 characters ... flooding?")
-        else:
-            try:
-                _d = tornado.escape.json_decode(msg)
-                if self.current_user['email'] == self.room.owner:
-                    self.room.safe_update_config(_d)
-            except:
-                logger.warn("Cannot interpret message: ", msg)
+        self.channel.remove_client(self)
 
     @property
-    def room(self):
-        return self.application.hotel.get_room(self.name)
+    def channel(self):
+        return self.application.channels.get_channel(self.name)
 
-    def __repr__(self):
+    def __str__(self):
         res = ""
-        res += "DataStreamHandler: "
+        res += "WSDataHandler: "
         res += self.name + "->"
         res += self.request.remote_ip
         res += " Created on: "
-        res += self.date_of_birth.strftime("%d/%m/%Y %H:%M")
+        res += self.creation_datetime.strftime("%d/%m/%Y %H:%M")
         return res

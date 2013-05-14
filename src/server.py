@@ -34,39 +34,41 @@ import tornado.web
 import zmq
 
 # Project imports
-import dataroom
+import datachannel
 import handlers
 
 VERSION = "simple"
 
 class SpaghettiApplication(tornado.web.Application):
     def __init__(self, **kwargs):
-        self.hotel = dataroom.DataHotel()
+        self.channel_collection = datachannel.ChannelCollection()
         _handlers = [
-                (r"/close/(\w+)/?", handlers.CloseRoomHandler),
-                (r"/info/(\w+)/?(json)?/?", handlers.InfoHandler),
+                (r"/?(json)?/?", handlers.ListHandler, 
+                                 dict(view="list.html")),
+                (r"/info/(\w+)/?(json)?/?", handlers.InfoHandler,
+                                            dict(view="detail.html")),
+                (r"/close/(\w+)/?", handlers.CloseChannelHandler),
                 (r"/ws/(\w+)/?", handlers.WSDataHandler),
                 ]
         settings = dict(
                 debug = True,
                 template_path = os.path.join(os.path.dirname(__file__), "templates"),
                 static_path = os.path.join(os.path.dirname(__file__), "static"),
-                cookie_secret = "cca0679f-618f-4b81-824e-0920ea0051c8",
                 )
         settings.update(kwargs)
         tornado.web.Application.__init__(self, _handlers, **settings)
 
-    def update(self, data):
+    def update_channel(self, data):
         logger.debug("application update via zmq data")
-        try:
-            self.hotel.update_room(data)
-        except:
-            pass
+        self.channel_collection.update_channel(data)
 
-    def close_room(self, name):
-        self.hotel.remove_room(name)
+    def close_channel(self, name):
+        self.channel_collection.remove_channel(name)
 
-if __name__ == '__main__':
+    def get_channel(self, name):
+        return self.channel_collection.get_channel(name)
+
+def cmd_line():
     from tornado.options import define, options
     from zmq.eventloop import ioloop, zmqstream
     ioloop.install()
@@ -81,7 +83,7 @@ if __name__ == '__main__':
     socket = context.socket(zmq.PULL)
     socket.bind("tcp://127.0.0.1:" + str(options.zmq_port))
     zstream = zmqstream.ZMQStream(socket)
-    zstream.on_recv(app.update)
+    zstream.on_recv(app.update_channel)
     # EVENT LOOP
     logger.info("starting io loop")
     logger.info("http port: " + str(options.http_port))
