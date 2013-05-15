@@ -38,6 +38,8 @@ import datachannel
 import handlers
 
 VERSION = "simple"
+MAIN_CONF = "/etc/spaghetti/spaghetti.conf"
+USER_CONF = "~/.spaghetti/spaghetti.conf"
 
 class SpaghettiApplication(tornado.web.Application):
     def __init__(self, **kwargs):
@@ -69,23 +71,63 @@ class SpaghettiApplication(tornado.web.Application):
         return self.channel_collection.get_channel(name)
 
 def cmd_line():
+    """
+    Entry point for \'spaghetti\' command line script.
+    """
     from tornado.options import define, options
     from zmq.eventloop import ioloop, zmqstream
+    import os
     ioloop.install()
-    define("zmq_port", default=8766)
-    define("http_port", default=8765)
+
+    # define spaghetti options
+    define("zmq_socks", 
+           default = "tcp://127.0.0.1:8766", 
+           multiple = True,
+           help = "Comma separated list of zmq sockets")
+    define("http_host", 
+           default = "127.0.0.1")
+    define("http_port",
+           default = 8765)
+    template_path = os.path.join(os.path.dirname(__file__), "templates"),
+    define("template_path",
+           default = template_path)
+    static_path = os.path.join(os.path.dirname(__file__), "static"),
+    define("static_path",
+           default = static_path)
+    define("debug",
+           default = False)
+
+    # parse options from config files and command line
+    if os.path.exists(MAIN_CONF):
+        tornado.options.parse_config_file(MAIN_CONF, final=False)
+    if os.path.exists(os.path.expanduser(USER_CONF)):
+        tornado.options.parse_config_file(os.path.expanduser(USER_CONF), final=False)
     tornado.options.parse_command_line()
+    if not isinstance(options.zmq_socks, list):
+        zsocks = [options.zmq_socks]
+    else:
+        zsocks = options.zmq_socks
+    if options.debug:
+        logger.info("running in debug mode")
+
+    # Create the app
+    app = SpaghettiApplication(debug = options.debug,
+                               static_path = options.static_path,
+                               template_path = options.template_path)
     # HTTP stuff
-    app = SpaghettiApplication()
-    app.listen(options.http_port)
+    app.listen(options.http_port, address=options.http_host)
+
     # ZMQ stuff
     context = zmq.Context()
     socket = context.socket(zmq.PULL)
-    socket.bind("tcp://127.0.0.1:" + str(options.zmq_port))
+    for _zsock in zsocks:
+        logger.info("binding %s" % (_zsock,))
+        socket.bind(_zsock)
     zstream = zmqstream.ZMQStream(socket)
     zstream.on_recv(app.update_channel)
-    # EVENT LOOP
+
+    # start the event loop
     logger.info("starting io loop")
+    logger.info("http host: " + str(options.http_host))
     logger.info("http port: " + str(options.http_port))
-    logger.info("zmq port: " + str(options.zmq_port))
     ioloop.IOLoop.instance().start()

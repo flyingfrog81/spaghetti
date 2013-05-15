@@ -24,8 +24,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 
-#TODO: owner must be a regular expression!!!!
-
 """
 Classes:
     - DataChannel
@@ -72,6 +70,7 @@ class DataChannel(object):
             self.lsat_data_update = None
         self.owner = owner
         #TODO: we want names to be dot compliant proj.sub1.d1 ...
+        #TODO: owner will become a regular expression
 
     @property
     def configuration(self):
@@ -191,14 +190,14 @@ class ChannelCollection(object):
         in the message tuple. Message is intended to be composed as defined by zmqnumpy module
         protocol for the interchange of numpy arrays.
         """
-        owner = message[0] #now it is not used but it's in the message body
+        owner = message[0]
         name = message[1]
-        #logger.debug("update message: " + str(message))
+        #TODO: add shape information to the channel
         if not name in self.channel_names():
             self.add_channel(name, owner, message[-1])
         else: # Channel already present
             channel = self.get_channel(name)
-            if not owner == channel.owner:
+            if not owner == channel.owner: #TODO: this will become a match
                 logger.debug("cannot update channel %s: %s is not the owner" %
                              (name, owner,))
             else:

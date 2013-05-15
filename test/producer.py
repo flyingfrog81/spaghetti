@@ -37,6 +37,9 @@ import zmqnumpy
 import logging
 logger = logging.getLogger(__name__)
 import time
+import os
+
+PIPE = os.path.expanduser("~/.spaghetti/pipe")
 
 @zmqnumpy.numpy_array_sender("random", "tcp://127.0.0.1:8766")
 def r_data(_max, _size, _type):
@@ -46,12 +49,14 @@ def r_data(_max, _size, _type):
 def g_data(_mean, _stdev, _size, _type):
     return numpy.random.normal(_mean, _stdev, _size).astype(_type)
 
-@zmqnumpy.numpy_array_sender("window", "tcp://127.0.0.1:8766")
+@zmqnumpy.numpy_array_sender("window", "ipc:///home/marco/.spaghetti/pipe")
+#@zmqnumpy.numpy_array_sender("window", "tcp://127.0.0.1:8766")
 def w_data(_stdev, _size, _type):
     return scipy.signal.gaussian(_size, _stdev).astype(_type)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
+    logger.info("starting to transmit")
     _size = 1024
     try:
         while 1:
