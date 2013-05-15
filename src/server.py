@@ -61,7 +61,7 @@ class SpaghettiApplication(tornado.web.Application):
         tornado.web.Application.__init__(self, _handlers, **settings)
 
     def update_channel(self, data):
-        logger.debug("application update via zmq data")
+        logger.debug("application update via zmqnumpy data")
         self.channel_collection.update_channel(data)
 
     def close_channel(self, name):

@@ -35,6 +35,8 @@ import datetime
 import logging
 logger = logging.getLogger(__name__)
 
+import zmqnumpy
+
 class DataChannelException(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
@@ -53,7 +55,7 @@ class DataChannel(object):
     is updated the channel notifies all the clients connected and sends them the 
     newly updated data.
     """
-    def __init__(self, name, owner, data=None, binary=False):
+    def __init__(self, name, owner, dtype=None, shape=None, data=None, binary=False):
         self.clients = set()
         bd = datetime.datetime.now()
         self.name = name 
@@ -64,6 +66,8 @@ class DataChannel(object):
         self.is_empty = True #True if no clients are connected
         self.empty_since = bd
         self.data = data
+        self.shape = shape
+        self.dtype = dtype
         if data:
             self.last_data_update = bd
         else:
@@ -77,6 +81,8 @@ class DataChannel(object):
         return dict(
                     name = self.name,
                     binary = self.binary,
+                    dtype = self.dtype,
+                    shape = self.shape,
                     creation_datetime = self.creation_datetime,
                     last_connection = self.last_connection,
                     is_open = self.is_open,
@@ -149,14 +155,14 @@ class ChannelCollection(object):
     def __iter__(self):
         return self.channels.itervalues()
 
-    def add_channel(self, name, owner=None, data=None):
+    def add_channel(self, name, owner=None, dtype="int32", shape=None, data=None):
         """
         @raise DataChannelException if trying to use a channel name that already
         exists
         """
         if self.channels.has_key(name):
             datachannel_error("channel already exists: " + name)
-        self.channels[name] = DataChannel(name, owner, data, True)
+        self.channels[name] = DataChannel(name, owner, dtype, shape, data, True)
         logger.debug("added channel: " + name)
 
     def channel_names(self):
@@ -190,11 +196,11 @@ class ChannelCollection(object):
         in the message tuple. Message is intended to be composed as defined by zmqnumpy module
         protocol for the interchange of numpy arrays.
         """
-        owner = message[0]
-        name = message[1]
+        [owner, name, dtype, shape, data] = zmqnumpy.msg_to_info(message)
+        shape = shape.tolist()
         #TODO: add shape information to the channel
         if not name in self.channel_names():
-            self.add_channel(name, owner, message[-1])
+            self.add_channel(name, owner, dtype, shape, data)
         else: # Channel already present
             channel = self.get_channel(name)
             if not owner == channel.owner: #TODO: this will become a match
