@@ -13,10 +13,10 @@ esempio di una serie temporale.
 Il flusso dei dati è una roba del genere: 
 
 1. Un software produce dei dati. Immaginiamo che i dati possano essere degli
-array numpy.
+   array numpy.
 2. Tramite un semplice decoratore si aggiunge alla funzione che produce dati
-la capacità di spedire i dati ad un server.
-3. Il server raccoglie i dati e li serve tramite un interfaccia web.
+   la capacità di spedire i dati ad un server.
+3. Il server raccoglie i dati e li serve tramite un' interfaccia web.
 
 
 DIPENDENZE 
@@ -31,14 +31,17 @@ DIPENDENZE
 PYTHON 
 ------
 
-Tutti installabili via pypi, zmqnumpy è un pacchetto che ho fatto io spero non
-dia problemi, ma nel caso puoi chiedere a me. 
+Zmqnumpy è un pacchetto che ho fatto io spero non dia problemi, ma nel caso puoi chiedere a me. 
+Il pacchetto si può installare con::
+
+$ pip install git+http://github.com/flyingfrog81/zmqnumpy.git#egg=zmqnumpy
+
 La scelta di "tornado" come server è un po' arbitraria ma è dettata dai seguenti
 motivi: 
 
 1. il codice è comprensibile ed è facile metterci mano
 2. Per questo progetto servivano essenzialmente HTTP e WEBSOCKET, e tornado
-le serve out-of-the-box , tra l'altro con una documentazione decente.
+   le serve out-of-the-box , tra l'altro con una documentazione decente.
 
 Ciò non significa che sia la scelta migliore.
 
@@ -68,6 +71,7 @@ possiamo farlo visitando questi url con il browser:
 
 Per produrre i dati da inviare al server::
 
+$ cd test 
 $ python producer.py
 
 A questo punto accedendo alla [root](http://127.0.0.1:8765/rooms/) dovresti
