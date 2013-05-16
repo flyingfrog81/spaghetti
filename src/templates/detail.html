@@ -5,21 +5,8 @@ Spaghetti client
 {% end %}
 
 {% block content %}
-<p>
-<form id="wsform">
-  Websocket room: <select name="roomlist" id="roomlist">
-    {% for room in rooms %}
-      <option> {{ room }} </option>
-    {% end %}
-  </select>
-  <input type="button" value="connect" name="connect" id="connect" />
-  <input type="button" value="close" name="close" id="close" disabled="disabled" />
-</form>
-</p>
-<p>
 <div id="plotplace" style="width: 500px; height: 400px; padding: 50px;">
 </div>
-</p>
 {% end %}
 
 {% block javascript %}
@@ -33,7 +20,8 @@ Spaghetti client
       var ws_url;
       var plot;
       var ws_connected = false;
-      var base_ws_url = "ws://192.167.189.75:8765/ws/";
+      var ws_url =
+      "ws://{{http_host}}:{{http_port}}{{ws_base_url}}{{channel.name}}";
       var first_data = true;
       var options = { 
         series: {
@@ -54,21 +42,12 @@ Spaghetti client
         },
         label: "websocket",
       };
-      $("#connect").click( function(){
         if(!ws_connected){
-          room_name = $("#roomlist").val();
-          ws_url = base_ws_url + $("#roomlist").val();
           console.log("opening websocket to: " + ws_url);
-          ws = typedWebSocket(ws_url, "float32");
-          $("#close").removeAttr("disabled");
-          $("#connect").attr("disabled", "disabled");
-          $("#roomlist").attr("disabled", "disabled");
+          ws = typedWebSocket(ws_url, "{{channel.dtype}}");
           first_data = true;
           ws.onclose = function(event){
             console.log("closing websocket to: " + ws_url);
-            $("#close").attr("disabled", "disabled");
-            $("#connect").removeAttr("disabled");
-            $("#roomlist").removeAttr("disabled");
           }
           ws.ondata = function(data){
             plot_data = [array_to_plot(data, 100)];
@@ -83,13 +62,6 @@ Spaghetti client
           };
           ws_connected = true;
         }
-      });
-      $("#close").click( function(){
-        if(ws_connected){
-          ws.close();
-          ws_connected = false;
-        }
-      });
     });
 </script>
 {% end %}

@@ -113,6 +113,7 @@ class DataChannel(object):
         self.clients.add(client)
         self.last_connection = datetime.datetime.now()
         self.empty_since = None
+        self.is_empty = False
         if self.data:
             client.write_message(self.data, self.configuration['binary'])
 

@@ -106,7 +106,11 @@ class InfoHandler(tornado.web.RequestHandler):
         if response_format == "json":
             self.write(channel.configuration)
         else:
-            self.render(self.view, channel)
+            self.render(self.view, 
+                       channel=channel,
+                       ws_base_url = self.application.ws_base_url,
+                       http_host = self.application.http_host,
+                       http_port = self.application.http_port)
 
 class WSDataHandler(tornado.websocket.WebSocketHandler):
     def open(self, name):
@@ -126,7 +130,7 @@ class WSDataHandler(tornado.websocket.WebSocketHandler):
 
     @property
     def channel(self):
-        return self.application.channels.get_channel(self.name)
+        return self.application.channel_collection.get_channel(self.name)
 
     def __str__(self):
         res = ""

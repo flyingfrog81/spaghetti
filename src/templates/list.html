@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}
+Spaghetti client
+{% end %}
+
+{% block content %}
+<ul>
+    {% for channel in channels %}
+    <li> <a href="/info/{{ channel.name }}/"
+        title="{{channel.name}}">{{channel.name}}</a></li>
+    {% end %}
+</ul>
+{% end %}
+
+{% block javascript %}
+{% end %}

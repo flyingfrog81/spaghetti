@@ -44,13 +44,16 @@ USER_CONF = "~/.spaghetti/spaghetti.conf"
 class SpaghettiApplication(tornado.web.Application):
     def __init__(self, **kwargs):
         self.channel_collection = datachannel.ChannelCollection()
+        self.http_host = None
+        self.http_port = None
+        self.ws_base_url = "/ws/"
         _handlers = [
                 (r"/?(json)?/?", handlers.ListHandler, 
                                  dict(view="list.html")),
                 (r"/info/(\w+)/?(json)?/?", handlers.InfoHandler,
                                             dict(view="detail.html")),
                 (r"/close/(\w+)/?", handlers.CloseChannelHandler),
-                (r"/ws/(\w+)/?", handlers.WSDataHandler),
+                (r"%s(\w+)/?" % (self.ws_base_url,), handlers.WSDataHandler),
                 ]
         settings = dict(
                 debug = True,
@@ -88,10 +91,10 @@ def cmd_line():
            default = "127.0.0.1")
     define("http_port",
            default = 8765)
-    template_path = os.path.join(os.path.dirname(__file__), "templates"),
+    template_path = os.path.join(os.path.dirname(__file__), "templates")
     define("template_path",
            default = template_path)
-    static_path = os.path.join(os.path.dirname(__file__), "static"),
+    static_path = os.path.join(os.path.dirname(__file__), "static")
     define("static_path",
            default = static_path)
     define("debug",
@@ -109,6 +112,8 @@ def cmd_line():
         zsocks = options.zmq_socks
     if options.debug:
         logger.info("running in debug mode")
+    logger.debug("Template path: %s" % (options.template_path,))
+    logger.debug("Static path: %s" % (options.static_path,))
 
     # Create the app
     app = SpaghettiApplication(debug = options.debug,
@@ -116,6 +121,8 @@ def cmd_line():
                                template_path = options.template_path)
     # HTTP stuff
     app.listen(options.http_port, address=options.http_host)
+    app.http_host = options.http_host
+    app.http_port = options.http_port
 
     # ZMQ stuff
     context = zmq.Context()
