@@ -18,6 +18,7 @@ array numpy.
 la capacità di spedire i dati ad un server.
 3. Il server raccoglie i dati e li serve tramite un interfaccia web.
 
+
 DIPENDENZE 
 ==========
 
@@ -55,7 +56,8 @@ UTILIZZO
 ========
 
 Per far partire il server::
-$ python server.py --logging=debug
+
+$ spaghetti --logging=debug
 
 A questo punto dobbiamo creare le "stanze" per i dati che vogliamo spedire,
 possiamo farlo visitando questi url con il browser: 
