@@ -51,7 +51,7 @@ class SpaghettiApplication(tornado.web.Application):
                 (r"/?(json)?/?", handlers.ListHandler, 
                                  dict(view="list.html")),
                 (r"/info/(\w+)/?(json)?/?", handlers.InfoHandler,
-                                            dict(view="detail.html")),
+                                            dict(view="d3tail.html")),
                 (r"/close/(\w+)/?", handlers.CloseChannelHandler),
                 (r"%s(\w+)/?" % (self.ws_base_url,), handlers.WSDataHandler),
                 ]

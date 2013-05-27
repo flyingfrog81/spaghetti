@@ -9,6 +9,9 @@ CONFDIR = "/etc/spaghetti/"
 # Install configuration directory in /etc/spaghetti or in 
 # ~/.spaghetti for copying or updating default 
 # configuration files
+#
+# Where do i have to put this code for custom installation???!!
+
 try:
     os.makedirs(CONFDIR)
 except OSError, _oe:
@@ -46,3 +49,4 @@ setup(
       scripts = ["scripts/spaghetti"],
       requires = ["tornado", "pyzmq", "numpy", "zmqnumpy"],
      )
+
