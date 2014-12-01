@@ -57,14 +57,15 @@ def w_data(_stdev, _size, _type):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     logger.info("starting to transmit")
-    _size = 1024
+    _size = 200
     try:
         while 1:
             r_data(150, _size, numpy.float32)
             g_data(100, 10, _size, numpy.float32)
             w_data(numpy.random.randint(1, _size), _size, numpy.float32)
-            print "Press ENTER to update data"
-            sys.stdin.readline()
+            #print "Press ENTER to update data"
+            #sys.stdin.readline()
+            time.sleep(0.01)
     except Exception, e:
         logger.error(e)
         logger.info("closing")

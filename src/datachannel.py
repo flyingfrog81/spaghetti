@@ -73,11 +73,16 @@ class DataChannel(object):
         else:
             self.lsat_data_update = None
         self.owner = owner
+        self.plot_configuration = {}
         #TODO: we want names to be dot compliant proj.sub1.d1 ...
         #TODO: owner will become a regular expression
 
     @property
     def configuration(self):
+        """
+        Set of attributes constituting the DataChannel configuration stored as a
+        dictionary.
+        """
         return dict(
                     name = self.name,
                     binary = self.binary,
@@ -204,7 +209,7 @@ class ChannelCollection(object):
             self.add_channel(name, owner, dtype, shape, data)
         else: # Channel already present
             channel = self.get_channel(name)
-            if not owner == channel.owner: #TODO: this will become a match
+            if not owner == channel.owner: #TODO: this will become a re.match
                 logger.debug("cannot update channel %s: %s is not the owner" %
                              (name, owner,))
             else:

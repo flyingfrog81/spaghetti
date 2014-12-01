@@ -92,22 +92,24 @@ class ListHandler(tornado.web.RequestHandler):
             self.render(self.view,
                         channels=self.application.channel_collection)
 
-class InfoHandler(tornado.web.RequestHandler):
+class DetailHandler(tornado.web.RequestHandler):
     def initialize(self, view="detail.html"):
         self.view = view
 
     @tornado.web.addslash
-    def get(self, name, response_format="html"):
-        logger.debug("InfoHandler.get(name=%s, response_format=%s)" % (name, response_format,))
+    def get(self, name, vizname="json"): #json is the default view ... change?
+        logger.debug("DetailHandler.get(name=%s, response_format=%s)" % 
+                     (name, response_format,))
         try:
             channel = self.application.get_channel(name)
         except Exception, exc:
             self.write(get_answer_dict(False, exc))
-        if response_format == "json":
+        if vizname == "json":
             self.write(channel.configuration)
         else:
             self.render(self.view, 
                        channel=channel,
+                       vizname = vizname,
                        ws_base_url = self.application.ws_base_url,
                        http_host = self.application.http_host,
                        http_port = self.application.http_port)

@@ -28,33 +28,6 @@ DIPENDENZE
 * pyzmq
 * zmqnumpy
 
-PYTHON 
-------
-
-Zmqnumpy è un pacchetto che ho fatto io spero non dia problemi, ma nel caso puoi chiedere a me. 
-Il pacchetto si può installare con::
-
-$ pip install git+http://github.com/flyingfrog81/zmqnumpy.git#egg=zmqnumpy
-
-La scelta di "tornado" come server è un po' arbitraria ma è dettata dai seguenti
-motivi: 
-
-1. il codice è comprensibile ed è facile metterci mano
-2. Per questo progetto servivano essenzialmente HTTP e WEBSOCKET, e tornado
-   le serve out-of-the-box , tra l'altro con una documentazione decente.
-
-Ciò non significa che sia la scelta migliore.
-
-ZMQ invece è una manna dal cielo, qui sono più convinto della bontà della
-soluzione.
-
-JAVASCRIPT
-----------
-
-AL momento ho fatto il plot utilizzando la libreria [flot](http://www.flotcharts.org/) 
-è già nel tar. Forse ora come ora è un po' datata, dovessi ripartire guarderei
-bene [d3](http://d3js.org/)
-
 UTILIZZO
 ========
 
@@ -76,14 +49,9 @@ $ python producer.py
 
 A questo punto accedendo alla [root](http://127.0.0.1:8765/rooms/) dovresti
 avere disponibili i plot generati.
-Guarda bene nei template html, mi sa che ci siano hardcoded degli indirizzi IP
-che vanno cambiati perchè tutto funzioni, colpa mia ;) 
 
 HTML5
 -----
 Tutto funziona solo grazie ad html5 ed in particoalre a WebSocket e TypedArray
 che ho messo assieme per creare una classe TypedWebSocket che trovi in
-static/js/ . 
-Anche flot credo utilizzi canvas e metodi di disegno provenienti da html5.
-Uno dei limiti grossi è proprio questo, anche perchè molti proxy e firewall
-ancora non gestiscono websocket. 
+static/js/ 

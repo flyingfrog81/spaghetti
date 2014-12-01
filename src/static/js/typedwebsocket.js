@@ -22,8 +22,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 //
+
 function typedWebSocket(url, dtype){
   var ws = new WebSocket(url);
+  ws.data_callbacks = [];
   ws.binaryType = "arraybuffer";
   ws.data_type = dtype;
   switch(dtype){
@@ -69,9 +71,19 @@ function typedWebSocket(url, dtype){
       break;
     default:
       throw new Error("TypedArray does not support type: " + dtype);
-  }
+  }; // switch(dtype){
   ws.onmessage = function(evt){
-    this.ondata(this.get_data(evt.data));
-  }
+    /*data = this.get_data(evt.data);
+    this.data_callbacks.forEach(
+        function(dcb){
+            dcb(data);
+        }
+    );*/
+    ws.ondata(this.get_data(evt.data));
+  }; // ws.onmessage = function(evt){
+  /*ws.attach_data_callback = function(cb){
+      this.data_callbacks.push(cb);
+  };*/
   return ws;
-}
+}; // function typedWebSocket(url, dtype){
+

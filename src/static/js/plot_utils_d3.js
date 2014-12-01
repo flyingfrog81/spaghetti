@@ -1,10 +1,8 @@
-(function( $ ) { 
+(function(){
     var AttachedPlot = function(element, opts){
-        var jQe = $(element);
         var d3e = d3.select(element);
         var obj = this;
         var o = opts;
-        //var id = jQe.attr("id");
         var width, height, plot_width, plot_height;
         var x = d3.scale.linear();
         var y = d3.scale.linear();
@@ -30,11 +28,9 @@
             .attr("class", "plotline")
             .attr("stroke-width", o.stroke_width)
             .attr("stroke", o.stroke);
-        //console.log("added line: " + plot);
         obj.update_dimensions = function(){
-            //console.log(id + ".update_dimensions()");
-            width = jQe.width();
-            height = jQe.height();
+            width = parseFloat(d3e.attr("width"));
+            height = parseFloat(d3e.attr("height"));
             plot_width = width - 2 * o.padding - o.axis_height - o.line_height;
             plot_height = height - 2 * o.padding - o.axis_height - o.line_height;
             x.range([0, plot_width - 1]);
@@ -85,26 +81,25 @@
 
         }; //obj.update_options = function(_opts){
     }; //var AttachedPlot = function(element, options){
-    $.fn.extend({
-        attach_plot : function(options){
-            var defaults = {
-                padding : 3,
-                axis_height : 25,
-                line_height : 25,
-                stroke_width : "2px",
-                stroke : "#152E40",
-                ws : null,
-            }; // var defaults = {
-            var _options = $.extend(defaults, options);
-            return this.each(function(){
-                var plugin = new AttachedPlot(this, _options);
+
+    d3.attach_plot = function(options){
+        var defaults = {
+            padding : 3,
+            axis_height : 25,
+            line_height : 25,
+            stroke_width : "2px",
+            stroke : "#152E40",
+            ws : null,
+        }; // var defaults = {
+        var _options = $.extend(defaults, options);
+        return this.each(function(){
+            var plugin = new AttachedPlot(this, _options);
+            plugin.update_dimensions();
+            //_options.ws.attach_data_callback(plugin.update_data);
+            _options.ws.ondata = plugin.update_data;
+            $(window).resize(function(){
                 plugin.update_dimensions();
-                //_options.ws.attach_data_callback(plugin.update_data);
-                _options.ws.ondata = plugin.update_data;
-                $(window).resize(function(){
-                    plugin.update_dimensions();
-                }); // window.resize
-            }); //this.each(function(){
-        }, //attach_plot : function(){
-    }); //$.fn.extend({
-})(jQuery);
+            }); // window.resize
+        }); //this.each(function(){
+    }; //d3.attach_plot = function(options){
+})();//(function(){

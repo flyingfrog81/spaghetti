@@ -10,57 +10,38 @@ Spaghetti client
 {% end %}
 
 {% block javascript %}
-<!-- <script language="javascript" type="text/javascript" src="/static/js/flot/jquery.js"></script> -->
+<script language="javascript" type="text/javascript" src="/static/js/flot/jquery.js"></script>
 <script language="javascript" type="text/javascript" src="/static/js/array_to_plot.js"></script>
 <script language="javascript" type="text/javascript" src="/static/js/typedwebsocket.js"></script>
-<script language="javascript" type="text/javascript" src="/static/js/flot/jquery.flot.js"></script>
+    {% if vizname == "line" %}
+    <script language="javascript" type="text/javascript" src="/static/js/lineplot.js"></script>
+    {% elif vizname == "d3" %}
+    <script language="javascript" type="text/javascript" src="/static/js/d3lineplot.js"></script>
+    {% elif vizname == "2d" %}
+    <script language="javascript" type="text/javascript" src="/static/js/bitmap.js"></script>
+    {% else %}
+
+    {% end %}
+
 <script>
     $(document).ready(function(){
-      var ws;
-      var ws_url;
-      var plot;
-      var ws_connected = false;
-      var ws_url =
-      "ws://{{http_host}}:{{http_port}}{{ws_base_url}}{{channel.name}}";
-      var first_data = true;
-      var options = { 
-        series: {
-          lines: {
-            show: true,
-            linewidth: 1.0,
-            fill: 0.2,
-            //fillcolor: "red";
-          },
-          shadowSize: 1,
-        },
-        colors: ["#e60000", "#dba255", "#919733"],
-        legend: {
-          show: true,
-          position: "ne",
-          margin: [10, 10],
-          backgroundOpacity: 0.5,
-        },
-        label: "websocket",
-      };
+        var ws;
+        var ws_url;
+        var plot = init_plot({{channel}}, $("#plotplace"));
+        var ws_connected = false;
+        var ws_url =
+        "ws://{{http_host}}:{{http_port}}{{ws_base_url}}{{channel.name}}";
+        var first_data = true;
         if(!ws_connected){
-          console.log("opening websocket to: " + ws_url);
-          ws = typedWebSocket(ws_url, "{{channel.dtype}}");
-          first_data = true;
-          ws.onclose = function(event){
-            console.log("closing websocket to: " + ws_url);
-          }
-          ws.ondata = function(data){
-            plot_data = [array_to_plot(data, 100)];
-            //console.log(plot_data);
-            if(first_data){
-              plot = $.plot($("#plotplace"), plot_data, options);
-              first_data = false;
-            }else{
-              plot.setData(plot_data);
-              plot.draw();
+            console.log("opening websocket to: " + ws_url);
+            ws = typedWebSocket(ws_url, "{{channel.dtype}}");
+            ws.onclose = function(event){
+                console.log("closing websocket to: " + ws_url);
             }
-          };
-          ws_connected = true;
+            ws.ondata = function(data){
+                plot.update(data);
+            };
+            ws_connected = true;
         }
     });
 </script>

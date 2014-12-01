@@ -48,10 +48,10 @@ class SpaghettiApplication(tornado.web.Application):
         self.http_port = None
         self.ws_base_url = "/ws/"
         _handlers = [
-                (r"/?(json)?/?", handlers.ListHandler, 
+                (r"/list/?(json)?/?", handlers.ListHandler, 
                                  dict(view="list.html")),
-                (r"/info/(\w+)/?(json)?/?", handlers.InfoHandler,
-                                            dict(view="d3tail.html")),
+                (r"/detail/(\w+)/?(vizname)?/?", handlers.DetailHandler,
+                                dict(view="detail.html")),
                 (r"/close/(\w+)/?", handlers.CloseChannelHandler),
                 (r"%s(\w+)/?" % (self.ws_base_url,), handlers.WSDataHandler),
                 ]
