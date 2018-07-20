@@ -34,8 +34,8 @@ import tornado.web
 import zmq
 
 # Project imports
-import datachannel
-import handlers
+from . import datachannel
+from . import handlers
 
 VERSION = "simple"
 MAIN_CONF = "/etc/spaghetti/spaghetti.conf"
@@ -48,9 +48,9 @@ class SpaghettiApplication(tornado.web.Application):
         self.http_port = None
         self.ws_base_url = "/ws/"
         _handlers = [
-                (r"/list/?(json)?/?", handlers.ListHandler, 
+                (r"/list/?(json)?/?", handlers.ListHandler,
                                  dict(view="list.html")),
-                (r"/detail/(\w+)/?(vizname)?/?", handlers.DetailHandler,
+                (r"/detail/(\w+)/(\w+)?/?", handlers.DetailHandler,
                                 dict(view="detail.html")),
                 (r"/close/(\w+)/?", handlers.CloseChannelHandler),
                 (r"%s(\w+)/?" % (self.ws_base_url,), handlers.WSDataHandler),
@@ -83,11 +83,11 @@ def cmd_line():
     ioloop.install()
 
     # define spaghetti options
-    define("zmq_socks", 
-           default = "tcp://127.0.0.1:8766", 
+    define("zmq_socks",
+           default = "tcp://127.0.0.1:8766",
            multiple = True,
            help = "Comma separated list of zmq sockets")
-    define("http_host", 
+    define("http_host",
            default = "127.0.0.1")
     define("http_port",
            default = 8765)

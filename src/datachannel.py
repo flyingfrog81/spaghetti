@@ -52,13 +52,13 @@ class DataChannel(object):
     """
     A DataChannel manages a set of data and clients.
     Clients enter the data channel and subscribe to the set of data, whenever data
-    is updated the channel notifies all the clients connected and sends them the 
+    is updated the channel notifies all the clients connected and sends them the
     newly updated data.
     """
     def __init__(self, name, owner, dtype=None, shape=None, data=None, binary=False):
         self.clients = set()
         bd = datetime.datetime.now()
-        self.name = name 
+        self.name = name
         self.binary = binary #Contains binary data
         self.creation_datetime = bd
         self.last_connection = None #Last client connection
@@ -68,7 +68,7 @@ class DataChannel(object):
         self.data = data
         self.shape = shape
         self.dtype = dtype
-        if data:
+        if data is not None:
             self.last_data_update = bd
         else:
             self.lsat_data_update = None
@@ -107,12 +107,12 @@ class DataChannel(object):
 
     def add_client(self, client):
         """
-        Add a client to the channel if the channel is open. 
+        Add a client to the channel if the channel is open.
         Sends the actual data to the client just connected and subscribes
         it to all successive data updates.
         """
         if not self.is_open:
-            logger.debug("trying to access a closed DataChannel: " + self.name) 
+            logger.debug("trying to access a closed DataChannel: " + self.name)
             return
         logger.debug("add a client to the channel: " + self.name)
         self.clients.add(client)
@@ -124,7 +124,7 @@ class DataChannel(object):
 
     def remove_client(self, client):
         """
-        Remove the client from the DataChannel. 
+        Remove the client from the DataChannel.
         If no more clients are present sets the DataChannel empty status.
         """
         logger.debug("remove client from channel: " + self.name)
@@ -151,22 +151,22 @@ class DataChannel(object):
 class ChannelCollection(object):
     """
     A collection of DataChannel objects.
-    This class is essentially a singleton and is instantiated once per 
-    application wrapping some logics around the DataChannel collection. 
+    This class is essentially a singleton and is instantiated once per
+    application wrapping some logics around the DataChannel collection.
     It's here just for convenience and code readability.
     """
     def __init__(self):
         self.channels = {}
 
     def __iter__(self):
-        return self.channels.itervalues()
+        return iter(self.channels.values())
 
     def add_channel(self, name, owner=None, dtype="int32", shape=None, data=None):
         """
         @raise DataChannelException if trying to use a channel name that already
         exists
         """
-        if self.channels.has_key(name):
+        if name in self.channels:
             datachannel_error("channel already exists: " + name)
         self.channels[name] = DataChannel(name, owner, dtype, shape, data, True)
         logger.debug("added channel: " + name)
@@ -197,12 +197,12 @@ class ChannelCollection(object):
 
     def update_channel(self, message):
         """
-        Update one of the channels according to message data. 
+        Update one of the channels according to message data.
         The name of the channel and every necessary information must be contained
         in the message tuple. Message is intended to be composed as defined by zmqnumpy module
         protocol for the interchange of numpy arrays.
         """
-        [owner, name, dtype, shape, data] = zmqnumpy.msg_to_info(message)
+        [owner, name, dtype, shape, data] = zmqnumpy.sender_msg_to_array(message)
         shape = shape.tolist()
         #TODO: add shape information to the channel
         if not name in self.channel_names():
@@ -215,4 +215,3 @@ class ChannelCollection(object):
             else:
                 channel.update_data(message[-1])
                 channel.broadcast_data()
-

@@ -36,7 +36,7 @@ import tornado.escape
 import tornado.auth
 
 # Project imports
-import datachannel
+from . import datachannel
 
 try:
     #Here we try to patch the json_encode function in order
@@ -72,7 +72,7 @@ class CloseChannelHandler(tornado.web.RequestHandler):
         try:
             self.application.channels.close_channel(channel_name)
             self.write(get_answer_dict())
-        except datachannel.DataChannelException, dce:
+        except datachannel.DataChannelException as dce:
             self.write(get_answer_dict(False, dce))
 
 class ListHandler(tornado.web.RequestHandler):
@@ -86,7 +86,7 @@ class ListHandler(tornado.web.RequestHandler):
             self.write(dict(
                         channels = [channel.configuration for channel in
                         self.application.channel_collection],
-                           ) 
+                           )
                       )
         else:
             self.render(self.view,
@@ -98,16 +98,16 @@ class DetailHandler(tornado.web.RequestHandler):
 
     @tornado.web.addslash
     def get(self, name, vizname="json"): #json is the default view ... change?
-        logger.debug("DetailHandler.get(name=%s, response_format=%s)" % 
-                     (name, response_format,))
+        logger.debug("DetailHandler.get(name=%s, response_format=%s)" %
+                     (name, vizname,))
         try:
             channel = self.application.get_channel(name)
-        except Exception, exc:
+        except Exception as exc:
             self.write(get_answer_dict(False, exc))
         if vizname == "json":
             self.write(channel.configuration)
         else:
-            self.render(self.view, 
+            self.render(self.view,
                        channel=channel,
                        vizname = vizname,
                        ws_base_url = self.application.ws_base_url,

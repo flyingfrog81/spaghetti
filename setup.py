@@ -12,14 +12,14 @@ CONFDIR = "/etc/spaghetti/"
 
 try:
     os.makedirs(CONFDIR)
-except OSError, _oe:
+except OSError as _oe:
     if _oe.errno == 13: #Permission denied
-        print "WARNING: Cannot create directory in /etc, permission denied"
+        print("WARNING: Cannot create directory in /etc, permission denied")
         CONFDIR = os.path.expanduser("~/.spaghetti/")
         try:
-            print "INFO: using directory %s" % (CONFDIR,)
+            print("INFO: using directory %s" % (CONFDIR,))
             os.makedirs(CONFDIR)
-        except OSError, __oe:
+        except OSError as __oe:
             if __oe.errno == 17: #directory exists
                 pass
             else:

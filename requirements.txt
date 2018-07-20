@@ -1,0 +1,4 @@
+numpy
+zmqnumpy >= 0.2
+pyzmq
+tornado
